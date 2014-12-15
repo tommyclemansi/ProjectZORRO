@@ -16,6 +16,7 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
@@ -131,6 +132,65 @@ public class ItemDAO {
 		query.setParameter("amount", 1);
 		items = query.getResultList(); // get the result as a list
 		System.out.println("criteria result 3: " + items);
+		
+		/*
+		 * test applying both Predicates..
+		 */
+		criteria.where(cb.and(condition,condition2)); // here 2 predicates should be applied
+		query = em.createQuery(criteria);// again create the query based on the criteriaQuery
+		query.setParameter("amount", 1);
+		items = query.getResultList(); // get the result as a list
+		System.out.println("criteria result 4: " + items);
+		
+		/*
+		 * test using generated metamodel
+		 */
+		Path<Double> pricepath2 = myItem.get(Item_.price); // here I use the metamodel class to construct the Path
+        //param is already defined above, so just reusing it:
+        Predicate condition3 = cb.ge(pricepath2, param); // compare path to a value, a parameter here.. 
+		criteria.where(condition3); // note here the condition2 is not appended, instead it is overwritten 
+		query = em.createQuery(criteria);// again create the query based on the criteriaQuery
+		query.setParameter("amount", 30);
+		items = query.getResultList(); // get the result as a list
+		System.out.println("criteria result 4: " + items);
+	
+		/*
+		 * test using generated metamodel AND JOIN
+		 */
+		pricepath2 = myItem.get(Item_.price); // here I use the metamodel class to construct the Path
+        //param is already defined above, so just reusing it:
+        condition3 = cb.ge(pricepath2, param); // compare path to a value, a parameter here.. 
+		criteria.where(condition3); // note here the condition2 is not appended, instead it is overwritten 
+		// this generates: 	/*
+		 * test using generated metamodel
+		 */
+		Path<Double> pricepath2 = myItem.get(Item_.price); // here I use the metamodel class to construct the Path
+       //param is already defined above, so just reusing it:
+       Predicate condition3 = cb.ge(pricepath2, param); // compare path to a value, a parameter here.. 
+		criteria.where(condition3); // note here the condition2 is not appended, instead it is overwritten 
+		query = em.createQuery(criteria);// again create the query based on the criteriaQuery
+		query.setParameter("amount", 30);
+		items = query.getResultList(); // get the result as a list
+		System.out.println("criteria result 4: " + items);
+	// 	/*
+		 * test using generated metamodel
+		 */
+		Path<Double> pricepath2 = myItem.get(Item_.price); // here I use the metamodel class to construct the Path
+       //param is already defined above, so just reusing it:
+       Predicate condition3 = cb.ge(pricepath2, param); // compare path to a value, a parameter here.. 
+		criteria.where(condition3); // note here the condition2 is not appended, instead it is overwritten 
+		query = em.createQuery(criteria);// again create the query based on the criteriaQuery
+		query.setParameter("amount", 30);
+		items = query.getResultList(); // get the result as a list
+		System.out.println("criteria result 4: " + items);
+	    // below generates: AND (t0.BAGNO = t1.BAG_BAGNO))
+		Join <Item,Bag> jb = myItem.join(Item_.bag);// set the join on the ROOT ITEM
+		// note we just set it on the root item, but actually never use JOIN
+		query = em.createQuery(criteria);// again create the query based on the criteriaQuery
+		query.setParameter("amount", 30);
+		items = query.getResultList(); // get the result as a list
+		System.out.println("criteria result 5: " + items);
+	
 		
 	}
 
