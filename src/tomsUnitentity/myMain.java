@@ -11,6 +11,8 @@ import tomsentity.Bag;
 import tomsentity.BagDAO;
 import tomsentity.Item;
 import tomsentity.ItemDAO;
+import tomsentity.MULTIKEY;
+import tomsentity.MULTIKEYDAO;
 import tomsentity.Status;
 
 public class myMain {
@@ -67,6 +69,19 @@ public class myMain {
 		ItemDAO ad = new ItemDAO();
 		ad.testCriteria();
 		ad.traverseModel();
+	}
+	
+	/*
+	 * test just to save an instance with multiple pk
+	 */
+	public static void test3()
+	{
+		MULTIKEYDAO ad = new MULTIKEYDAO();
+	    MULTIKEY it = new MULTIKEY();
+	    it.setMyID(1);
+	    it.setName("Tommyclemansi");
+	    it.setCountry("Swahili");
+		ad.save(it);
 	}
 
 }
