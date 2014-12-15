@@ -16,6 +16,8 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -104,19 +106,31 @@ public class ItemDAO {
 		// note above this is typed
 		Root<Item> myItem = criteria.from(Item.class); // from Item (Root extends from)
 		criteria.select(myItem);// here select an item to be returned 
-		//cb.gt(arg0, arg1)
-		//Predicate condition = cb.gt(item.get(Item_.price), 20); // price greater then 20 
-		//ci.where(condition);
 		
-		TypedQuery<Item> query = em.createQuery(criteria);
-		List<Item> items = query.getResultList();
-		System.out.println("criteria result: " + items);
+		TypedQuery<Item> query = em.createQuery(criteria); // create a query from the criteria
+		List<Item> items = query.getResultList(); // get the result as a list
+		System.out.println("criteria result 1: " + items);
 		
-		//Path<String> cheap = rootitem.<String>get("price");
-		//Predicate condition = cb., arg1)
-		//query.where(condition);
-		//em.createQuery.. 
-		
+		/*
+		 * test selecting using a Predicate
+		 */
+		Path<Double> pricepath = myItem.get("price"); // a Path is taken from the root
+		Predicate condition = cb.ge(pricepath, 11); // create a Predicate (this extends Expression)
+		criteria.where(condition); // set the where clause 
+		query = em.createQuery(criteria);// again create the query based on the criteriaQuery
+		items = query.getResultList(); // get the result as a list
+		System.out.println("criteria result 2: " + items);
+
+        /*
+         * test selecting using a parameter
+         */
+		ParameterExpression<Double> param = cb.parameter(Double.class,"amount"); // amount will be used later
+		Predicate condition2 = cb.ge(pricepath, param);
+		criteria.where(condition2); // note here the condition2 is not appended, instead it is overwritten 
+		query = em.createQuery(criteria);// again create the query based on the criteriaQuery
+		query.setParameter("amount", 1);
+		items = query.getResultList(); // get the result as a list
+		System.out.println("criteria result 3: " + items);
 		
 	}
 

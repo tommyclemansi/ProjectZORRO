@@ -27,7 +27,7 @@ public class myMain {
 		it.setPrice(10.22);
 		it.setBag(bag);
 		it.addKeyword("tomstest");
-		it.addKeyword("tomssecondTest");
+		it.addKeyword("tomssecondTest-- changed ");
 	//	it.s
 		ItemDAO ad = new ItemDAO();
 		Item it2 = new Item();
@@ -56,9 +56,16 @@ public class myMain {
         System.out.println("succeeded");
         Item item = ad.findByPrimaryKey(1);
         System.out.println("ITEM result: "  + item.toString());
+        test2();
 	}
 	
-	
-	
+	/*
+	 * test criteria api
+	 */
+	public static void test2()
+	{
+		ItemDAO ad = new ItemDAO();
+		ad.testCriteria();
+	}
 
 }
