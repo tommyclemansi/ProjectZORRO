@@ -11,7 +11,9 @@ import javax.persistence.*;
 
 /*
  * implemented here also toString & hashcode but not needed at all
- * 
+ *  Other approach is to create MULTICLASS as embeddable class
+ *  then use EmbeddedId in this class
+ *  (normal Embedded)
  */
 @Entity
 @IdClass(MULTICLASS.class)

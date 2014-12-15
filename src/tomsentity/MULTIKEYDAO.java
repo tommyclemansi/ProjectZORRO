@@ -12,6 +12,14 @@ public class MULTIKEYDAO {
 		 em = Persistence.createEntityManagerFactory("MyJPA1").createEntityManager();
 	}
 	
+	
+	
+	public static EntityManager getEm() {
+		return em;
+	}
+
+
+
 	public MULTIKEY save(MULTIKEY item)
 	{
 	//EntityManager em = getEntityManager();

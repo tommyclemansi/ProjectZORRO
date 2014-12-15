@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+
 import tomsentity.Bag;
 import tomsentity.BagDAO;
 import tomsentity.Item;
@@ -59,6 +62,7 @@ public class myMain {
         Item item = ad.findByPrimaryKey(1);
         System.out.println("ITEM result: "  + item.toString());
         test2();
+        test3();
 	}
 	
 	/*
@@ -82,6 +86,18 @@ public class myMain {
 	    it.setName("Tommyclemansi");
 	    it.setCountry("Swahili");
 		ad.save(it);
+		// this does not work // it detached:
+		it.setCountry("BElgium");
+		// now try to update outside a transaction:
+		EntityManager em = ad.getEm();
+		EntityTransaction et = em.getTransaction();
+		et.begin();
+		// it needs to be merged as it is detached, so no updates are viewable.. 
+		em.merge(it);
+		it.setCountry("BElgium");
+		et.commit();
+		
+		
 	}
 
 }
