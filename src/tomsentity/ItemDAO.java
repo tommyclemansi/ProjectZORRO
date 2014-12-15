@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.Cache;
+import javax.persistence.CacheRetrieveMode;
+import javax.persistence.CacheStoreMode;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -230,7 +232,69 @@ Note: Applications using the string-based API may need to specify the type of th
 	{
 	System.out.println(mytype.getClass().toString() + " "+ mytype.getName());	
 	}
+
 	}
+	
+	public static void findmyent()
+	{System.out.println("before searching my entity");
+	Item it =em.find(Item.class, 1); 
+	System.out.println("the price for this item is: "+ it.getPrice());
+	/*
+	 * note no queries are executed, as it is in the cache.. 
+	 * 
+	 */
+	System.out.println("after searching my entity");
+	Cache ca = em.getEntityManagerFactory().getCache();	
+    System.out.println("item in factory cache: " + ca.contains(Item.class, 1));
+	ca.evictAll();
+	
+	System.out.println("evicted cache, before searching my entity");
+	System.out.println("item in factory cache: " + ca.contains(Item.class, 1));
+	it =em.find(Item.class, 1); 
+	System.out.println("the price for this item is: "+ it.getPrice());
+	/*
+	 * note no queries are executed, as it is in the cache.. 
+	 * issue is that this is an extended context.. 
+	 * so only refresh will cause it to be refreshed I guess. 
+	 */
+	System.out.println("after searching my entity");
+	System.out.println("item in factory cache: " + ca.contains(Item.class, 1));
+	em.close();
+	// now using a brand new entitymanager
+	 em = Persistence.createEntityManagerFactory("MyJPA1").createEntityManager();
+	 System.out.println("item in factory cache: " + ca.contains(Item.class, 1));
+		it =em.find(Item.class, 1); 
+		System.out.println("the price for this item is: "+ it.getPrice());
+		System.out.println("item in factory cache: " + ca.contains(Item.class, 1));
+		
+	// another test, new factory, but try to bypass cache:
+		System.out.println("new test");
+		em.close();
+		// now using a brand new entitymanager
+		 em = Persistence.createEntityManagerFactory("MyJPA1").createEntityManager();
+		 System.out.println("item in factory cache: " + ca.contains(Item.class, 1));
+			it =em.find(Item.class, 1); 
+			System.out.println("the price for this item is: "+ it.getPrice());
+			System.out.println("item in factory cache: " + ca.contains(Item.class, 1));
+	System.out.println("yet another test using a query.. ");
+	/*
+	 * this also does not go to the database		 
+	 */
+	Query qu =  em.createQuery("select i from Item i where i.ItemNO='1'");
+			 Item itret = (Item) qu.getSingleResult();
+			 System.out.println("the price for this item is: "+ it.getPrice());
+				System.out.println("item in factory cache: " + ca.contains(Item.class, 1));
+		 
+				//yet another test:
+				Map props = new HashMap();
+				//props.put("javax.persistence.cache.retrieveMode", CacheRetrieveMode.USE); //this is the default 
+				//props.put("javax.persistence.cache.retrieveMode", CacheRetrieveMode.BYPASS); //bypass the cache				
+				//props.put("javax.persistence.cache.storeMode", CacheStoreMode.REFRESH); // explicitly refreshes
+				props.put("javax.persistence.cache.storeMode", CacheStoreMode.USE); // default, does not refresh if available
+				it =em.find(Item.class, 1,props);
+				System.out.println("item in factory cache: " + ca.contains(Item.class, 1));
+	}
+	
 	
 	
 }
