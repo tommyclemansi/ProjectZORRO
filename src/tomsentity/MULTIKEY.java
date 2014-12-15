@@ -34,7 +34,11 @@ public class MULTIKEY implements Serializable {
 	@Id
 	private String name;
 	private String country;
-
+	/*
+	 * test optimistic locking
+	 */
+    @Version
+	private int version;
 	public int getMyID() {
 		return myID;
 	}
