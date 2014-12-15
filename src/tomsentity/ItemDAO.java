@@ -13,6 +13,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -107,6 +108,16 @@ public class ItemDAO {
 		// note above this is typed
 		Root<Item> myItem = criteria.from(Item.class); // from Item (Root extends from)
 		criteria.select(myItem);// here select an item to be returned 
+		/*
+		 * note here that myItem must be compatible with the type used 
+		 * in CriteriaQuery
+		 * select
+CriteriaQuery<T> select(Selection<? extends T> selection)
+Specify the item that is to be returned in the query result. Replaces the previously specified selection(s), if any. 
+Note: Applications using the string-based API may need to specify the type of the select item when it results from a get or join operation and the query result type is specified. 
+
+
+		 */
 		
 		TypedQuery<Item> query = em.createQuery(criteria); // create a query from the criteria
 		List<Item> items = query.getResultList(); // get the result as a list
@@ -157,33 +168,7 @@ public class ItemDAO {
 		/*
 		 * test using generated metamodel AND JOIN
 		 */
-		pricepath2 = myItem.get(Item_.price); // here I use the metamodel class to construct the Path
-        //param is already defined above, so just reusing it:
-        condition3 = cb.ge(pricepath2, param); // compare path to a value, a parameter here.. 
-		criteria.where(condition3); // note here the condition2 is not appended, instead it is overwritten 
-		// this generates: 	/*
-		 * test using generated metamodel
-		 */
-		Path<Double> pricepath2 = myItem.get(Item_.price); // here I use the metamodel class to construct the Path
-       //param is already defined above, so just reusing it:
-       Predicate condition3 = cb.ge(pricepath2, param); // compare path to a value, a parameter here.. 
-		criteria.where(condition3); // note here the condition2 is not appended, instead it is overwritten 
-		query = em.createQuery(criteria);// again create the query based on the criteriaQuery
-		query.setParameter("amount", 30);
-		items = query.getResultList(); // get the result as a list
-		System.out.println("criteria result 4: " + items);
-	// 	/*
-		 * test using generated metamodel
-		 */
-		Path<Double> pricepath2 = myItem.get(Item_.price); // here I use the metamodel class to construct the Path
-       //param is already defined above, so just reusing it:
-       Predicate condition3 = cb.ge(pricepath2, param); // compare path to a value, a parameter here.. 
-		criteria.where(condition3); // note here the condition2 is not appended, instead it is overwritten 
-		query = em.createQuery(criteria);// again create the query based on the criteriaQuery
-		query.setParameter("amount", 30);
-		items = query.getResultList(); // get the result as a list
-		System.out.println("criteria result 4: " + items);
-	    // below generates: AND (t0.BAGNO = t1.BAG_BAGNO))
+		    // below generates: AND (t0.BAGNO = t1.BAG_BAGNO))
 		Join <Item,Bag> jb = myItem.join(Item_.bag);// set the join on the ROOT ITEM
 		// note we just set it on the root item, but actually never use JOIN
 		query = em.createQuery(criteria);// again create the query based on the criteriaQuery
@@ -191,7 +176,29 @@ public class ItemDAO {
 		items = query.getResultList(); // get the result as a list
 		System.out.println("criteria result 5: " + items);
 	
-		
+		/*
+		 * Tuple query test.. 
+		 * a Tuple is a pair of name, value pairs, similar to a Map
+		 */
+		CriteriaQuery<Tuple> tuple = cb.createTupleQuery();
+		Root<Item> rootItem = tuple.from(Item.class);
+		// either use it in this way: 
+		tuple.select(cb.tuple( rootItem.get(Item_.ItemNO), rootItem.get(Item_.price)).alias("itemNumberwithprice"));
+		// or use a multiselect (specify multiple values
+		// here I use 3:
+		//tuple.multiselect(rootItem.get(Item_.ItemNO),rootItem.get(Item_.keywords),rootItem.get(Item_.price));
+	    TypedQuery<Tuple> mq = em.createQuery(tuple);
+	    List<Tuple> mylist = mq.getResultList();
+	    System.out.println("result of Tuple Query 1 : " + mylist);
+        for (Tuple x : mylist)
+          {System.out.println(x.get(0) +" " + x.get(1));}
+	    tuple.multiselect(rootItem.get(Item_.ItemNO),rootItem.get(Item_.keywords),rootItem.get(Item_.price));
+	    mq = em.createQuery(tuple);
+	    mylist = mq.getResultList();
+	     for (Tuple x : mylist)
+         {System.out.println(x.get(0) +" " + x.get(1) + " " + x.get(2));}
+	    System.out.println("result of Tuple Query 2 : " + mylist);
+
 	}
 
 }
