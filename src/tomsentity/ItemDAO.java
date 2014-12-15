@@ -6,6 +6,7 @@ package tomsentity;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.Cache;
 import javax.persistence.EntityManager;
@@ -22,6 +23,8 @@ import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.Metamodel;
 
 public class ItemDAO {
 
@@ -199,6 +202,35 @@ Note: Applications using the string-based API may need to specify the type of th
          {System.out.println(x.get(0) +" " + x.get(1) + " " + x.get(2));}
 	    System.out.println("result of Tuple Query 2 : " + mylist);
 
+	    /*
+	     * but also possible in another way:
+	     */
+	    CriteriaQuery<Object []> arrquery = cb.createQuery(Object[].class);
+		rootItem = arrquery.from(Item.class);
+		arrquery.multiselect(rootItem.get(Item_.ItemNO),rootItem.get(Item_.keywords),rootItem.get(Item_.price)); 
+	    TypedQuery<Object[]> myq = em.createQuery(arrquery);
+	    List<Object[]> ml = myq.getResultList();
+	    System.out.println("result of generic query");
+	    for (Object x : ml)
+	    {  System.out.println(x.getClass() + "string: " + x.toString());
+	      
+	       if (x instanceof Double)
+	    	   System.out.println((Double)x);
+	    }
+	    
+	    
+	    
 	}
 
+	public static void traverseModel()
+	{System.out.println("dumping metamodel classes:");
+	Metamodel mm = em.getMetamodel();
+	Set<EntityType<?>> myset = mm.getEntities();
+	for(EntityType<?> mytype : myset)
+	{
+	System.out.println(mytype.getClass().toString() + " "+ mytype.getName());	
+	}
+	}
+	
+	
 }

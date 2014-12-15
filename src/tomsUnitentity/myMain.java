@@ -66,6 +66,7 @@ public class myMain {
 	{
 		ItemDAO ad = new ItemDAO();
 		ad.testCriteria();
+		ad.traverseModel();
 	}
 
 }
