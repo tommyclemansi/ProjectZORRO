@@ -14,11 +14,13 @@ import javax.persistence.LockModeType;
 
 import tomsentity.Bag;
 import tomsentity.BagDAO;
+import tomsentity.Employee;
 import tomsentity.Item;
 import tomsentity.ItemDAO;
 import tomsentity.MULTIKEY;
 import tomsentity.MULTIKEYDAO;
 import tomsentity.Status;
+import tomsentity.ParkingSpace;
 
 public class myMain {
 
@@ -64,8 +66,9 @@ public class myMain {
         Item item = ad.findByPrimaryKey(1);
         System.out.println("ITEM result: "  + item.toString());
         
-        test3();
-        test2();
+        //test3();
+        //test2();
+        testEmp();
 	}
 	
 	/*
@@ -146,6 +149,31 @@ after pessimistic
 		//em.find(entityClass, primaryKey)
 		
 		
+	}
+	
+	public static void testEmp()
+	{
+		Employee e = new Employee();
+		e.setEmpid(1);
+		e.setName("Tom");
+		
+		ParkingSpace park = new ParkingSpace();
+		park.setParkingId(1);
+		park.setParkingname("tomsparking");
+		park.setEmp(e);
+		//e.setParking(park);
+		
+		/*
+		 * assume above will create entity in NEW 
+		 * then when persisting it should go to managed
+		 * 
+		 */
+		MULTIKEYDAO ad = new MULTIKEYDAO();
+		EntityManager em = ad.getEm();
+		EntityTransaction et = em.getTransaction();
+		et.begin();
+		em.persist(park);
+		et.commit();
 	}
 
 }

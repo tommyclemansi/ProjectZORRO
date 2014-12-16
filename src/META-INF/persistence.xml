@@ -6,6 +6,8 @@
 		<class>tomsentity.Item</class>
 		<class>tomsentity.Bag</class>
 		<class>tomsentity.MULTIKEY</class>
+		<class>tomsentity.Employee</class>
+		<class>tomsentity.ParkingSpace</class>
 		<shared-cache-mode>ALL</shared-cache-mode>
 		<properties>
 		    <!--  <property name="javax.persistence.jdbc.url" value="jdbc:derby:C:\Users\tcleyman\MyDB;create=true"/>

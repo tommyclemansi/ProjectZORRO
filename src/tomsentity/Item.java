@@ -74,7 +74,10 @@ public class Item implements Serializable {
 	// question is, will this persist the Bag, when calling save on the bag?
 	// this is now the owning side, since I removed the annot on other side
 	// JoinColumn can be used here due to the fact that the FK is on this table
+	//@JoinColumn(name="BAG_BAGNO")
+	@JoinColumn(name="BAGGY")
 	@ManyToOne(targetEntity = tomsentity.Bag.class, cascade = ALL)
+	//@Column(name="BAGGY")
 	private Bag bag;
 	/*
 	[EL Warning]: 2014-12-04 12:35:17.374--UnitOfWork(24138443)--java.lang.IllegalStateException: During synchronization a new object was found through a relationship that was not marked cascade PERSIST: tomsentity.Item@13db7a7.
