@@ -7,19 +7,30 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 
 import static javax.persistence.CascadeType.PERSIST;
+
 import javax.persistence.JoinTable;
+
 import static javax.persistence.CascadeType.ALL;
 
 @Entity
-public class Employee {
+public class Employee2 {
 
 	@Id
 	private int empid;
     private String name;
+    
+    //using OneToMany as Item2 is an Entity
+    // here an intermediate table will be generated
+    // this contains employee as pk
+    // + Item (a bit strange)
+    // then the first value is the value being used 
+    @OneToMany
+    private java.util.Map<String,Item2> mymap;
     /*
      * one to One bidirectional
      * will make this the owning side
@@ -33,21 +44,17 @@ public class Employee {
     //@OneToOne(cascade = PERSIST, optional = false)
     //private ParkingSpace parking;
     
-    /*
+    public java.util.Map<String, Item2> getMymap() {
+		return mymap;
+	}
+	public void setMymap(java.util.Map<String, Item2> mymap) {
+		this.mymap = mymap;
+	}
+	/*
      * test for ManyToMany
      * without joincolumn (but still owning side)
      */
-    @ManyToMany
-    @JoinTable(name = "TEST_TABLE", joinColumns = @JoinColumn(name = "empcol_empid"), inverseJoinColumns = @JoinColumn(name = "parkingcol_parkingId"))
-	private Collection<ParkingSpace> parkingcol;
-    
-    public Collection<ParkingSpace> getParkingcol() {
-		return parkingcol;
-	}
-	public void setParkingcol(Collection<ParkingSpace> parkingcol) {
-		this.parkingcol = parkingcol;
-	}
-	public int getEmpid() {
+    public int getEmpid() {
 		return empid;
 	}
 	public void setEmpid(int empid) {
@@ -59,12 +66,6 @@ public class Employee {
 	public void setName(String name) {
 		this.name = name;
 	}
-	/*public ParkingSpace getParking() {
-		return parking;
-	}
-	public void setParking(ParkingSpace parking) {
-		this.parking = parking;
-	}*/
-
+	
 	
 }

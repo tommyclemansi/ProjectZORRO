@@ -8,6 +8,8 @@
 		<class>tomsentity.MULTIKEY</class>
 		<class>tomsentity.Employee</class>
 		<class>tomsentity.ParkingSpace</class>
+		<class>tomsentity.Employee2</class>
+		<class>tomsentity.Item2</class>
 		<shared-cache-mode>ALL</shared-cache-mode>
 		<properties>
 		    <!--  <property name="javax.persistence.jdbc.url" value="jdbc:derby:C:\Users\tcleyman\MyDB;create=true"/>
@@ -22,6 +24,7 @@
 		    <property name="eclipselink.logging.level" value="WARNING"/>
 		    <property name="eclipselink.logging.level.sql" value="FINE"/>
 		    <property name="eclipselink.logging.timestamp" value="true"/>
+		    <property name="eclipselink.logging.parameters" value="true"/>
 		    <property name="javax.persistence.schema-generation.database.action" value="drop-and-create"/>
 		</properties>
 	</persistence-unit>

@@ -4,6 +4,7 @@
 package tomsUnitentity;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +20,9 @@ import javax.persistence.LockModeType;
 import tomsentity.Bag;
 import tomsentity.BagDAO;
 import tomsentity.Employee;
+import tomsentity.Employee2;
 import tomsentity.Item;
+import tomsentity.Item2;
 import tomsentity.ItemDAO;
 import tomsentity.MULTIKEY;
 import tomsentity.MULTIKEYDAO;
@@ -72,7 +75,8 @@ public class myMain {
         
         //test3();
         //test2();
-        testEmp();
+        //testEmp();
+	   testmaps();
 	}
 	
 	/*
@@ -157,7 +161,7 @@ after pessimistic
 	
 	public static void testEmp()
 	{
-		Employee e = new Employee();
+		/*Employee e = new Employee();
 		e.setEmpid(1);
 		e.setName("Tom");
 		
@@ -168,6 +172,21 @@ after pessimistic
 		// this is really required:
 		e.setParking(park);
 		
+		*
+		*
+		*/
+		
+		
+		//Collection<Employee> empcol = new java.util.ArrayList<Employee>();
+		//empcol.add(e);
+		ParkingSpace park = new ParkingSpace();
+		park.setParkingId(3);
+		park.setParkingname("tomsparking");
+		//park.setEmpcol(empcol);
+		
+		// this is really required:
+	
+		
 		/*
 		 * assume above will create entity in NEW 
 		 * then when persisting it should go to managed
@@ -177,8 +196,21 @@ after pessimistic
 		EntityManager em = ad.getEm();
 		EntityTransaction et = em.getTransaction();
 		et.begin();
+		
 		em.persist(park);
+		//em.persist(park);
 		et.commit();
+		Employee e = new Employee();
+		e.setEmpid(3);
+		e.setName("Tom");
+		Collection<ParkingSpace> parkcol = new java.util.ArrayList<ParkingSpace>();
+		parkcol.add(park);
+		e.setParkingcol(parkcol);
+        et.begin();
+		em.persist(e);
+		//em.persist(park);
+		et.commit();
+		
 		Map props = new HashMap();
 		props.put("javax.persistence.cache.retrieveMode", CacheRetrieveMode.BYPASS); //this is the default 
 		//props.put("javax.persistence.cache.retrieveMode", CacheRetrieveMode.BYPASS); //bypass the cache				
@@ -188,4 +220,29 @@ after pessimistic
 		System.out.println("space " + ps.toString());
 	}
 
+	public static void testmaps()
+	{
+		MULTIKEYDAO ad = new MULTIKEYDAO();
+		EntityManager em = ad.getEm();
+		EntityTransaction et = em.getTransaction();
+		et.begin();
+		Employee2 e2 = new Employee2();
+		e2.setEmpid(5999);
+		e2.setName("myname");
+		em.persist(e2);
+		Item2 it2 = new Item2();
+		it2.setDescription("item2");
+		it2.setPrice(33333.999);
+		it2.setTest(e2);
+		it2.addKeyword("tomstest2");
+		em.persist(it2);
+		Map<String,Item2> mymap = new HashMap<>();
+		mymap.put("a test value", it2);
+		//mymap.put("test2", it2);
+		e2.setMymap(mymap);
+		et.commit();
+		
+	//	e2.setMymap(mymap);
+	}
+	
 }
