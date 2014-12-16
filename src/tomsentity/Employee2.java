@@ -7,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
+import javax.persistence.MapKey;
+import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
@@ -29,8 +31,18 @@ public class Employee2 {
     // this contains employee as pk
     // + Item (a bit strange)
     // then the first value is the value being used 
-    @OneToMany
+    /*@OneToMany
+    @MapKeyColumn(name="testtommy")//testtommy is the column name of the valu
+    //@MapKey(name="ItemNO")  this assumes 
     private java.util.Map<String,Item2> mymap;
+    */
+    @OneToMany
+    //@MapKeyColumn(name="testtommy")//testtommy is the column name of the valu
+    @MapKey(name="ItemNO")  // in this case the item number is stored in the join column, no add data stored.. 
+    private java.util.Map<String,Item2> mymap;
+    // in this case the Item number in the table will be a Integer
+    // so this means that our String is automagically converted.. 
+    
     /*
      * one to One bidirectional
      * will make this the owning side
