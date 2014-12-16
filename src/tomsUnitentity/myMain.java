@@ -63,8 +63,9 @@ public class myMain {
         System.out.println("succeeded");
         Item item = ad.findByPrimaryKey(1);
         System.out.println("ITEM result: "  + item.toString());
-        test2();
+        
         test3();
+        test2();
 	}
 	
 	/*
@@ -75,6 +76,7 @@ public class myMain {
 		ItemDAO ad = new ItemDAO();
 		ad.testCriteria();
 		ad.traverseModel();
+		ItemDAO.findmyent();
 	}
 	
 	/*
@@ -141,6 +143,7 @@ after pessimistic
 		//em.flush();
 		System.out.println("after pessimistic");
 		et.commit();
+		//em.find(entityClass, primaryKey)
 		
 		
 	}

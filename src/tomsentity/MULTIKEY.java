@@ -1,8 +1,12 @@
+/*******************************************************************************
+ * Copyright (c) 2014 Tom Cleymans
+ *******************************************************************************/
 package tomsentity;
 
 import java.io.Serializable;
 
 import javax.persistence.*;
+import static javax.persistence.FetchType.LAZY;
 
 /**
  * Entity implementation class for Entity: MULTIKEY
@@ -39,6 +43,11 @@ public class MULTIKEY implements Serializable {
 	 */
     @Version
 	private int version;
+    
+    @Basic(fetch = LAZY)
+    @Lob @Column
+    private String myLOB; 
+    
 	public int getMyID() {
 		return myID;
 	}
