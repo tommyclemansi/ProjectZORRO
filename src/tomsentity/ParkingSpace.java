@@ -8,6 +8,11 @@ import static javax.persistence.CascadeType.PERSIST;
 @Entity
 public class ParkingSpace {
 
+	@Override
+	public String toString() {
+		return "ParkingSpace [parkingId=" + parkingId + ", parkingname="
+				+ parkingname + ", emp=" + emp.getName() + "]";
+	}
 	@Id
 	private int parkingId;
 	private String parkingname;

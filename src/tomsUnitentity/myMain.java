@@ -5,9 +5,13 @@ package tomsUnitentity;
 
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.persistence.CacheRetrieveMode;
+import javax.persistence.CacheStoreMode;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.LockModeType;
@@ -161,7 +165,8 @@ after pessimistic
 		park.setParkingId(1);
 		park.setParkingname("tomsparking");
 		park.setEmp(e);
-		//e.setParking(park);
+		// this is really required:
+		e.setParking(park);
 		
 		/*
 		 * assume above will create entity in NEW 
@@ -174,6 +179,13 @@ after pessimistic
 		et.begin();
 		em.persist(park);
 		et.commit();
+		Map props = new HashMap();
+		props.put("javax.persistence.cache.retrieveMode", CacheRetrieveMode.BYPASS); //this is the default 
+		//props.put("javax.persistence.cache.retrieveMode", CacheRetrieveMode.BYPASS); //bypass the cache				
+		//props.put("javax.persistence.cache.storeMode", CacheStoreMode.REFRESH); // explicitly refreshes
+		props.put("javax.persistence.cache.storeMode", CacheStoreMode.REFRESH); // default, does not refresh if available
+		ParkingSpace ps = em.find(ParkingSpace.class, 1,props);
+		System.out.println("space " + ps.toString());
 	}
 
 }
