@@ -13,7 +13,7 @@ import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.TemporalType.TIME;
 import static javax.persistence.GenerationType.SEQUENCE;
 import static javax.persistence.EnumType.STRING;
-
+//stupidchange
 /**
  * Entity implementation class for Entity: Bag
  *
