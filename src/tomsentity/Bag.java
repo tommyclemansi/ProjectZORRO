@@ -61,6 +61,7 @@ http://www.developerscrappad.com/408/java/java-ee/ejb3-jpa-3-ways-of-generating-
 	 * @see java.lang.Enum#name()
 	 */
 	public final String name() {
+	System.out.println("test");
 		return status.name();
 	}
 
