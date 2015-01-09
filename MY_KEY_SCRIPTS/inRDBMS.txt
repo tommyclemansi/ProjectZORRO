@@ -1,0 +1,132 @@
+# tcleyman
+
+drop user TOM;
+create user TOM identified by TOM;
+grant alter session to TOM;
+grant create session to TOM;
+grant connect to TOM;
+grant create procedure to TOM;
+grant create table to TOM;
+grant create any procedure to TOM;
+grant create any table to TOM;
+grant create public synonym to TOM;
+grant drop public synonym to TOM;
+grant resource to TOM;
+grant dba to TOM;
+
+execute dbms_java.grant_permission('TOM','SYS:java.util.PropertyPermission','http.proxySet','write');
+execute dbms_java.grant_permission('TOM','SYS:java.util.PropertyPermission','http.proxyHost','write');
+execute dbms_java.grant_permission('TOM','SYS:java.util.PropertyPermission','http.proxyPort','write');
+execute dbms_java.grant_permission('TOM','SYS:java.lang.RuntimePermission','accessClassInPackage.sun.util.calendar','');
+execute dbms_java.grant_permission('TOM','SYS:java.lang.RuntimePermission','getClassLoader','');
+execute dbms_java.grant_permission('TOM','SYS:java.net.SocketPermission','*','connect,resolve');
+execute dbms_java.grant_permission('TOM','SYS:java.util.PropertyPermission','*','read,write');
+execute dbms_java.grant_permission('TOM','SYS:java.lang.RuntimePermission','setFactory','');
+execute dbms_java.grant_permission( 'TOM', 'SYS:java.lang.RuntimePermission', 'shutdownHooks', '' );
+execute dbms_java.grant_permission( 'TOM', 'SYS:java.util.logging.LoggingPermission', 'control', '' );
+execute dbms_java.grant_permission('TOM', 'SYS:java.lang.RuntimePermission', 'createClassLoader', '' );
+execute dbms_java.grant_permission( 'TOM', 'SYS:oracle.aurora.security.JServerPermission', 'Verifier', '');
+
+loadjava -u TOM/TOM -r -v -f -genmissing -genmissingjar missingfiles.jar -jarsasdbobjects dbwsclientws.jar dbwsclientdb11.jar
+
+executed:
+utl_dbws_decl.sql
+utl_dbws_body.sql
+
+next function looks like this and works with http but fails with https:
+CREATE OR REPLACE FUNCTION sayname(name VARCHAR2) RETURN VARCHAR2 AS
+service_ utl_dbws.SERVICE;
+call_ utl_dbws.CALL;
+service_qname utl_dbws.QNAME;
+port_qname utl_dbws.QNAME;
+response sys.XMLTYPE;
+request sys.XMLTYPE;
+BEGIN
+service_qname := utl_dbws.to_qname(null, 'HelloService');
+service_      := utl_dbws.create_service(service_qname);
+call_         := utl_dbws.create_call(service_);
+utl_dbws.set_target_endpoint_address(call_, 'https://10.175.25.82:7002/3-6897273181-SR3_6725305731-context-root/HelloPort');
+--utl_dbws.set_target_endpoint_address(call_, 'http://10.175.25.82:7001/3-6897273181-SR3_6725305731-context-root/HelloPort');
+utl_dbws.set_property( call_, 'OPERATION_STYLE', 'document');
+request       := sys.XMLTYPE('<sayHello xmlns="http://sr3_6725305731/"><arg0 xmlns="">'||name||'</arg0></sayHello>');
+response      :=utl_dbws.invoke(call_, request);
+return 'done';
+END;
+/
+
+select dbms_java.set_property('javax.net.debug','all') from dual;
+set serverout on size unlimited;
+exec dbms_java.set_output(2000000);
+select sayName('test') from dual;
+
+==> socket closed Exception
+==> Root Thread, SEND TLSv1 ALERT:  fatal, description = certificate_unknown
+Root Thread, WRITE: TLSv1 Alert, length = 2
+[Raw write]: length = 7
+0000: 15 03 01 00 02 02 2E                               .......
+Root Thread, called closeSocket()
+Root Thread, handling exception: javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException: No trusted certificate found
+
+
+Then done:
+
+keytool -exportcert -v -alias demoidentity -file public.crt -keystore demoidentity.jks -storepass DemoIdentityKeyStorePassPhrase
+keytool -printcert -v -file public.crt
+keytool -import -v -trustcacerts -alias demoidentity -file public.crt -keystore $ORACLE_HOME/javavm/lib/security/cacerts -storepass changeit
+keytool -list -v -keystore $ORACLE_HOME/javavm/lib/security/cacerts -storepass changeit
+
+Then tested:
+
+1. an already existing session (where I executed the procedure before)
+==> execute the procedure again fails
+==> select dbms_java.endsession from dual;
+==> execute the procedure again works
+
+2. a new session
+==> works
+
+So this all done without RDBMS instance restart.
+
+extra note:
+------------
+There is also no explicit need to use the cacerts file.
+For example one can use:
+dbms_java.set_property to set the javax.net.ssl.truststore & trustStorePassword, or use JSP code to do the same, for example:
+
+create or replace and compile java source named "tomstest" as
+public class tomstest {
+public static void show_props() {
+System.getProperties().list(System.out);
+}
+
+public static void set_props() {
+try{
+//System.setProperty("javax.net.debug","all");
+System.setProperty("javax.net.ssl.trustStore", "D:\\certificates\\OPENSSL\\truststore.jks");
+System.setProperty("javax.net.ssl.trustStorePassword", "tcleyman");
+System.setProperty("javax.net.ssl.keyStore", "D:\\certificates\\OPENSSL\\tcleyman.jks");
+System.setProperty("javax.net.ssl.keyStorePassword", "tcleyman");
+}
+catch (Exception e){e.printStackTrace();}
+}
+
+}
+/
+
+create or replace procedure P_TOMSTEST1
+as language java name 'tomstest.show_props()';
+/
+
+create or replace procedure P_TOMSTEST2
+as language java name 'tomstest.set_props()';
+/
+
+alter session set tracefile_identifier='newestjavadbg';
+set serveroutput on;
+exec dbms_output.enable(100000);
+exec dbms_java.set_output(100000);
+select  dbms_java.set_property('javax.net.debug', 'all') from dual;
+
+exec P_TOMSTEST1;
+exec P_TOMSTEST2;
+exec P_TOMSTEST1; 
