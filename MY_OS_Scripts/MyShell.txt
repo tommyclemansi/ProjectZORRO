@@ -1,0 +1,9 @@
+SOLARIS
+========
+80 chars limit
+ps -ef 
+
+try:
+pargs <PID>
+
+find . -name "*.sh" | grep properties

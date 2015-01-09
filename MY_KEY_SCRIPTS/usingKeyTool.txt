@@ -12,13 +12,17 @@ keytool -v -genkeypair -alias tom -dname "CN=tom, OU=Support, O=Oracle, L=Vilvoo
 
 Normal Self signed
 --------
-1. create a new wildcard certificate in the following way:
-keytool -genkeypair -alias tom -dname "CN=tom, OU=Support, O=Oracle, L=Vilvoorde, ST=Brussels, C=SU" -keyalg RSA -validity 560 -keystore tcleyman.JKS -storepass Oracle1234
+1. Generate normal self signed
+keytool -v -genkeypair -alias tom -dname "CN=tom, OU=Support, O=Oracle, L=Vilvoorde, ST=Brussels, C=SU" -keyalg RSA -keysize 2048 -validity 560 -keystore tcleyman.JKS -storepass Oracle1234
 
 keytool -list -v -keystore tcleyman.JKS -storepass Oracle1234
+#Your keystore contains 1 entry
+#Entry type: PrivateKeyEntry
 
 export certificate:
+# pem/crt/cer: base64 encoded
 keytool -v -export -alias tom -keystore tcleyman.JKS -rfc -file tcleyman.pem -storepass Oracle1234
+# der: binary format
 keytool -v -export -alias tom -keystore tcleyman.JKS -file tcleyman.der -storepass Oracle1234
 
 Import the certificate (to have a public one also)
