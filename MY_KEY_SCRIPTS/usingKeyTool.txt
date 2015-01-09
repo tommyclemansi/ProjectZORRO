@@ -1,0 +1,15 @@
+# tcleyman
+
+Wildcard
+--------
+1. create a new wildcard certificate in the following way:
+keytool -genkeypair -alias tom -dname "CN=*.be.oracle.com, OU=Support, O=Oracle, L=Vilvoorde, ST=Brussels, C=SU" -keyalg RSA -validity 560 -keystore tcleyman.JKS -storepass Oracle1234
+
+keytool -list -v -keystore tcleyman.JKS -storepass Oracle1234
+
+export certificate:
+keytool -v -export -alias tom -keystore tcleyman.JKS -rfc -file tcleyman.pem -storepass Oracle1234
+keytool -v -export -alias tom -keystore tcleyman.JKS -file tcleyman.der -storepass Oracle1234
+
+Import the certificate (to have a public one also)
+keytool -import -alias tompublic -file tcleyman.pem -keystore tcleyman.JKS -storepass Oracle1234
