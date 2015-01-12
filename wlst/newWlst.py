@@ -26,6 +26,9 @@ def monitorRunningServers():
             pass
         print cmo.getName()
         print cmo.getSocketsOpenedTotalCount()
+        cmo = cd('serverRuntime:/JVMRuntime/AdminServer')
+
+
 
 if __name__== "main":
     monitorRunningServers()
