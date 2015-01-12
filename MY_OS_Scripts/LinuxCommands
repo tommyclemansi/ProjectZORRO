@@ -1,0 +1,5 @@
+# tcleyman
+# frequently used commands
+
+# remove .trc files 
+find . -name "*.trc" -type f | xargs rm -v
