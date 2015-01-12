@@ -1,0 +1,30 @@
+# tcleyman
+
+
+
+#partitions:
+============
+#fdisk
+fdisk -l 
+
+#Disk /dev/xvde doesn't contain a valid partition table
+fdisk /dev/xvde
+
+# n p w
+#    Device Boot      Start         End      Blocks   Id  System
+#/dev/xvde1               1       13054   104856223+  83  Linux
+
+# 
+mkfs -t ext3 /dev/xvde1
+
+# check 
+fsck /dev/xvde1
+
+# Mount using device name  -- add to /etc/fstab
+/dev/xvde1	                           /u04    ext3    defaults 1 2
+
+# then mount
+mount /u04
+
+# check size
+df -kh
