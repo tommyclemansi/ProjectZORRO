@@ -2,6 +2,7 @@
     <wb-module deploy-name="ProjectZORRO">
         <wb-resource deploy-path="/" source-path="/ejbModule" tag="defaultRootSource"/>
         <wb-resource deploy-path="/" source-path="/src"/>
+        <wb-resource deploy-path="/" source-path="/.apt_src"/>
         <property name="java-output-path" value="/ProjectZORRO/build/classes"/>
     </wb-module>
 </project-modules>

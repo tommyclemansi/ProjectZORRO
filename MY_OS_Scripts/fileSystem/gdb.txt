@@ -1,0 +1,7 @@
+# tcleyman
+
+file core.<PID>
+
+gdb /myprogram core.<PID>
+
+bt 

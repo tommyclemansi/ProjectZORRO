@@ -3,3 +3,13 @@
 
 # remove .trc files 
 find . -name "*.trc" -type f | xargs rm -v
+
+# run in current shell
+source setWLSenv.sh
+. ./setWLSenv.sh
+
+# Note
+./setWLSEnv.sh on its own starts a new shell
+
+# check last system messages
+dmesg 
