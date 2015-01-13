@@ -1,0 +1,20 @@
+# created tcleyman  
+
+# setuid
+# set ownership (user or group) too root
+# any other user can now start program and it will be invoked as root  
+#
+# chown root myexec
+# chmod u+s myexec
+# 
+# sudo, finer grained
+# use visudo to edit 
+# /etc/sudoers 
+#
+
+# below should oracle, no matter where logged in
+# and without pwd, run ifconfig & arping (as root)
+Defaults:oracle !requiretty
+oracle ALL=NOPASSWD: /sbin/ifconfig,/sbin/arping
+# to check:
+sodo -l
