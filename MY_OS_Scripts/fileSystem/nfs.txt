@@ -1,0 +1,23 @@
+# configure nfs server
+# tcleyman
+
+#show nfs version for mounted:
+nfsstat -m
+nfsstat -s
+nfsstat -c
+
+
+/etc/exports/
+# on tomssoabox
+/u03/software *(rw,sync)
+/u04/myshare *(rw,sync)
+
+# check status
+service nfs status
+
+# configure client:
+# on jtechvm
+mount tomssoabox.be.oracle.com:/u03/software /u04/other
+mount tomssoabox.be.oracle.com:/u04/myshare /u04/myshare
+
+# or in /etc/fstab 

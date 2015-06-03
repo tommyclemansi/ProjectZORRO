@@ -1,0 +1,127 @@
+Notes:
+------
+.pem : base64 format (begin/end cert syntax)
+.der/.cer/.crt: binary format (der format)
+
+PKCS
+----
+PKCS7: (begin/end pkcs , contains only certificates)
+PFX/PKCS12: contains server cert, private key, and intermediate in 1 file
+
+viewing certificates:
+---------------------
+openssl x509 -in my.pem -text -noout
+openssl x509 -in my.der -inform der -text -noout
+
+convert
+-------
+openssl x509 -in cert.crt -outform der -out cert.der
+openssl x509 -in cert.crt -inform der -outform pem -out cert.pem
+
+message digest
+--------------
+openssl dgst -sha1 myfile.txt
+
+generate a private key
+----------------------
+openssl genrsa -out tomsprivate.pem -passout pass:Oracle1234 -des3 2048
+
+rading a private key and writing public
+---------------------------------------
+openssl rsa -in tomsprivate.pem -passin pass:Oracle1234 -pubout -out tomspublic.pem
+
+
+create now certificate:
+-----------------------
+ openssl req -new -x509 -days 365 -key tomsprivate.pem -out tomscertificate.cer -subj '/CN=tom, /OU=Support, /O=Oracle, /L=Vilvoorde, /ST=Brussels, /C=SU'
+ openssl req -new -x509 -days 365 -key cas/ca/ca.key -out cas/CreditAuthorityCA/credit.authority.ca.cer -subj '/CN=CreditAuthority CA/OU=Support/O=Oracle/L=Orlando/ST=Florida/C=US'
+ 
+ 
+create new rootCA
+-----------------
+use the conf file 
+then 
+openssl req -x509 -newkey rsa:2048 -out cacert.pem -outform PEM
+
+then to verify this:
+openssl x509 -in cacert.pem -text -noout 
+
+then in new shell generate a new cert request
+---------------------------------------------
+openssl req -newkey rsa:2048 -keyout testprivate.pem -keyform PEM -out testreq.pem -outform PEM -subj '/CN=test, /OU=Support, /O=Oracle, /L=Vilvoorde, /ST=Brussels, /C=SU' -passin pass:Oracle1234
+# testprivate contains now private key 
+# testreq.pem contains certificate request --> that I must 
+
+# check the contents:
+openssl req -in testreq.pem -text -noout
+
+then sign it using our root CA
+------------------------------
+# using the config earlier
+openssl ca -in /u03/keystore/usingopenSSL/test/testreq.pem 
+
+# now you see cacerts contains 01.pem 
+openssl x509 -in 01.pem -text -noout
+
+# but problem seems to be a v1 cert
+# issue if you try again: TXT_DB error number 2
+openssl ca -revoke /u03/keystore/usingopenSSL/myconf/certs/01.pem
+
+
+# ok issue was typo in conf file.
+http://shib.kuleuven.be/docs/ssl_commands.shtml
+
+an x509v3 certificate is allowed to sign another certificate(this is an extension property)
+(keyusage -> keyCertSign) 
+so now I have 3 certs that I can more or less expose:
+so placed it in the same dir:
+rootCA.pem  testprivate.pem  testpublic.pem
+
+openssl verify -CAfile rootCA.pem -verbose testpublic.pem
+==> ok
+
+[oracle@TomsSOABOX result]$ openssl verify -purpose sslserver -CAfile rootCA.pem -verbose testpublic.pem 
+testpublic.pem: OK
+
+openssl pkcs12 -export -in testpublic.pem -inkey testprivate.pem -out Mykeystore.p12 -name "tcleymanTest" -CAfile rootCA.pem 
+openssl pkcs12 -info -in Mykeystore.p12
+-caname myCA -chain 
+
+==> tested and works fine, this should also work:
+cat testprivate.pem testpublic.pem rootCA.pem > combined.pem
+==> does not work for when wanting to 
+
+I'll use that certificate as intermediate and create yet another:
+=================================================================
+openssl req -newkey rsa:2048 -keyout testprivate2.pem -keyform PEM -out testreq2.pem -outform PEM -subj '/CN=test2, /OU=Support, /O=Oracle, /L=Vilvoorde, /ST=Brussels, /C=SU' -passin pass:Oracle1234
+openssl x509 -req -in testreq2.pem -CA testpublic.pem -CAkey testprivate.pem -CAcreateserial -out testpublic2.pem -days 365 -extfile v3.ext
+
+openssl x509 -in testpublic2.pem -text -noout
+==> ok, now create new p12 file
+
+openssl pkcs12 -export -in testpublic2.pem -inkey testprivate2.pem -out Mykeystore2.p12 -name "tcleymanTest2" -CAfile testpublic.pem -caname intermediate1 -CAfile rootCA.pem -caname rootca
+openssl pkcs12 -info -in Mykeystore2.p12
+
+Now do the same but in a JKS store:
+----------------------------------
+
+# then for example create an empty keystore:
+keytool -genkey -alias tom -dname "CN=tom, OU=Support, O=Oracle, L=Vilvoorde, ST=Brussels, C=SU" -keyalg RSA -keysize 2048 -validity 560 -keystore tcleyman.JKS -storepass Oracle1234
+keytool -delete -alias tom -keystore tcleyman.JKS -storepass Oracle1234 -keypass Oracle1234
+keytool -list -v -keystore tcleyman.JKS -storepass Oracle1234
+
+keytool -printcert -v -file testpublic2.pem
+keytool -importkeystore -srckeystore Mykeystore2.p12 -srcstoretype PKCS12  -deststoretype JKS -destkeystore tcleyman2.JKS -srcstorepass Oracle1234 -deststorepass Oracle1234 -srcalias tcleymanTest2 -destalias tcleymanTest2 -srckeypass Oracle1234
+keytool -list -v -keystore tcleyman2.JKS -storepass Oracle1234
+
+./keytool -genkeypair -keyalg RSA -alias client -keypass mystorepass -keystore client/client.jks -storepass mystorepass -dname "CN=ie0044xr.dc-dublin.de, O=Vodafone Ireland Organization, C=IE" -validity 365
+
+./keytool -certreq -alias client -sigalg "SHA1withRSA" -file client/client.csr -storetype jks -keystore client/client.jks -storepass mystorepass
+
+keytool -import -trustcacerts -alias rootcacert –keystore server/server.jks -file ct_root.cer -storepass mystorepass
+
+keytool -import -trustcacerts -alias intermediatecacert1 -keystore server/server.jks -file VodafoneCorporateDomain2009.cer -storepass mystorepass
+
+keytool -import -trustcacerts -alias intermediatecacert2 -keystore server/server.jks -file VodafoneCorporateServices2009.cer -storepass mystorepass
+
+keytool -importcert -trustcacerts -alias ie0044xr -file cert_36678.cer -keystore server/server.jks -storepass mystorepass 

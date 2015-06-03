@@ -28,3 +28,16 @@ mount /u04
 
 # check size
 df -kh
+
+# local setup
+# /etc/rc.local
+# end of startup
+losetup /dev/loop1 /ASM/asm_dsk1
+losetup /dev/loop2 /ASM/asm_dsk2
+losetup /dev/loop3 /ASM/asm_dsk3
+losetup /dev/loop4 /ASM/asm_dsk4
+/etc/init.d/oracleasm createdisk ASM1 /dev/loop1
+/etc/init.d/oracleasm createdisk ASM2 /dev/loop2
+/etc/init.d/oracleasm createdisk ASM3 /dev/loop3
+/etc/init.d/oracleasm createdisk ASM4 /dev/loop4
+vncserver -geometry 1024x768

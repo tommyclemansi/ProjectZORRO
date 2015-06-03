@@ -4,6 +4,10 @@
 # remove .trc files 
 find . -name "*.trc" -type f | xargs rm -v
 
+#remove log files
+find . -name "*.log" -type f | xargs rm -v
+
+
 # run in current shell
 source setWLSenv.sh
 . ./setWLSenv.sh
@@ -13,3 +17,29 @@ source setWLSenv.sh
 
 # check last system messages
 dmesg 
+
+#find class files:
+find . -type f -name '*.jar' -print0 |  xargs -0 -I '{}' sh -c 'jar tf {} | grep CSSUtils.class &&  echo {}'
+find . -type f -name '*.jar' -print0 |  xargs -0 -I '{}' sh -c 'jar tf {} | grep NodeImpl.class &&  echo {}'
+
+
+# check os limits
+sysctl -a | grep ip_local_port_range
+
+# global vars
+/etc/profile
+
+# check jobs
+[root@tomssoabox ~]# crontab -u oracle -l
+0,15,30,45 * * * * /u02/app/FMW11121/OHS1212/oracle_common/ccr/bin/emCCR -cron -silent start
+
+[root@tomssoabox ~]# crontab -l
+@reboot  echo "Server has restarted "`hostname` | mail -s "System Restart" tom.cleymans@oracle.com
+
+
+cd /etc
+ls cron*
+
+# just grep 
+find . -name "*.xml" | xargs grep "prefix.cert"
+find . -name "*.json" | xargs grep "system.prefix.cert"

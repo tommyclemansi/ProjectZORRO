@@ -1,0 +1,16 @@
+message -> Hashing -> Hash --> Encrypted --> Message Digest
+								using 
+								X.509
+								priv key
+								
+X.509 digital certificate contains:
+..
+public key
+certificate signature algorithm: PKCS #1 SHA-256 With RSA Encryption
+certificate signature value: this is 256 bytes
+
+Subject public key info:
+PKCS #1 RSA Encryption
+Subject public key: this is 2048 bits.
+
+ certificate subject key id

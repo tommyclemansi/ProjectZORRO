@@ -1,0 +1,67 @@
+main wsse elements:
+
+Signatures
+===========
+- BinarySecurityToken
+  valuetype (
+  	- x509v3
+  	- Kerberosv
+  	- encType Base64Binary
+  	
+- KeyInfo
+  	KeyName: 
+  	Keyvalue: (value of key, best use SecurityTokenReference) ==> this can ref the binarysecuritytoken(x509 cert)
+  	
+- signature
+	1.signedinfo # POINTS to what is being signed
+		- signaturemethod (rsa - sha1) 
+		- ref
+			- digestmethod (sha1)
+			- digestvalue: XXXX (so hash of message)
+	2. signaturevalue: YYY (XXXX using rsa to encrypt using the key in keyinfo)
+	note that signature is over whole signedinfo (so including digest)
+	4. keyInfo(is info about what key to use to decrypt)
+
+Encryption
+==========
+wsse header
+- Encryptedkey
+	- EncryptionMethod: RSA-1 
+	- keyInfo (can also be KeyIdentifier): contains info about key used to encrypt the symmetric key
+		- SecurityTokenRef (here Thumbrint SHA1 value can be used to locate private key in keystore to decrypt the symettric key)
+			- KeyIdentifier: XXXX
+	- cipherData 
+		- cipherValue: YYYY --> this is the symettric key (both sign & encrypt) (it has been encrypted using the key referenced above, maybe X509 cert, so using PKI)
+		  # once you have decrypted the cipthervalue, one can use this key to decrypt the real data.. 
+	- ReferenceList: 
+	    -DataRef: URI ==> references the encryptiondata: so what is encrypted
+	    
+=> in body there is
+	- encryptedData # CONTAINS what is being encrypted (or ref when outside)
+		- type (element: entire element encrypted, content: only content encrypted)
+		- CipherData	 
+			- CipherValue
+            
+        
+security tokens
+info for auth & authorization
+
+
+
+
+this is inherited from:
+http://www.w3.org/2008/xmlsec/Drafts/xmlenc-core-11/#sec-Overview
+good ref
+http://www-01.ibm.com/support/knowledgecenter/SS7JFU_8.5.5/com.ibm.websphere.express.doc/ae/cwbs_samltokenprofilespec.html?cp=SS7JFU_8.5.5%2F1-3-0-17-0-0-0
+http://wso2.com/library/3132/
+
+use symetric: when only server has a X509 cert
+     - use protection tokens: in case both signing & encyrption are same
+       - use encryptiontoken: encyrptio
+       - use signature toke: signature
+       - supportingtoken: in case you want to authenticate
+use asymetric: both parties have
+
+binding props:
+  - protection order: sign before encrypt (or encrypt beefore sign) 
+  - signature protection: 
