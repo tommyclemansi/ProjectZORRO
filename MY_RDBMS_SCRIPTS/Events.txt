@@ -1,0 +1,78 @@
+1. with system:
+alter system set events '1461 trace name ERRORSTACK level 3';
+2. then connect with and reproduce the problem (if Connection pools are in place, make sure the Connections are physically reconnected as events will only work for new Connections)
+3. upload the trace file produced in the USER_DUMP_DEST directory. (in11G ORACLE_BASE/diag/rdbms/ORACLE_SID/ORACLE_SID/trace/ )
+4. to disable this again: ALTER SYSTEM SET EVENTS '1461 trace name errorstack off';
+
+
+to confirm it is set, one can do a new connection with sqlplus (after the event is set)
+DECLARE
+lev BINARY_INTEGER;
+BEGIN
+dbms_system.read_ev(1461, lev);
+dbms_output.put_line(lev);
+END;
+/
+==> this should generate a .trc file in the user_dump_dest directory
+or alternatively check with note 436036.1
+session level
+--------------
+
+1. with system:
+alter session set events '942 trace name ERRORSTACK level 1';
+2. reproduce
+3. upload the trace file produced in the USER_DUMP_DEST directory. 
+4. to disable this again: ALTER session SET EVENTS '942 trace name errorstack off';
+
+to confirm it is set:
+DECLARE
+lev BINARY_INTEGER;
+BEGIN
+dbms_system.read_ev(942, lev);
+dbms_output.put_line(lev);
+END;
+==> this should result in a trace file (note to reconnect! -)
+
+or alternatively list events:
+	How To List All The Named Events Set For A Database (Doc ID 436036.1)
+
+set an event with oradebug:
+---------------------------
+1. identify the session 
+
+   SQL> select p.pid, p.spid, s.username 
+        from v$process p, v$session s 
+        where p.addr = s.paddr; 
+
+
+2. Attach to the desired session 
+
+   SQL> connect / as sysdba   
+   SQL> oradebug setorapid <pid>
+   --OR-- 
+   SQL> oradebug setospid <spid> 
+
+3. get to know the trace file:    
+   oradebug tracefile_name 
+   ==> it outputs the filename it will write to
+
+4. oradebug EVENT 942 trace name ERRORSTACK level 3
+
+	list all DB events:
+	=========================================
+SET linesize 120
+SET feedback off
+SET SERVEROUTPUT ON
+DECLARE
+err_msg VARCHAR2(120);
+BEGIN
+dbms_output.enable (1000000);
+FOR err_num IN 10000..10999
+LOOP
+err_msg := SQLERRM (-err_num);
+IF err_msg NOT LIKE '%Message '||err_num||' not found%' THEN
+dbms_output.put_line (err_msg);
+END IF;
+END LOOP;
+END;
+/

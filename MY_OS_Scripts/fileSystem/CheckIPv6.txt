@@ -1,0 +1,35 @@
+[root@tomssoabox ~]# ifconfig
+eth0      Link encap:Ethernet  HWaddr 00:16:3E:15:CF:5B  
+          inet addr:10.172.218.198  Bcast:10.172.219.255  Mask:255.255.252.0
+          inet6 addr: 2606:b400:808:44:216:3eff:fe15:cf5b/64 Scope:Global
+
+          
+
+ip addr list
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 16436 qdisc noqueue 
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+
+==> inet6 is ipv6 enabled 
+
+to disable:
+sudo sh -c 'echo 1 > /proc/sys/net/ipv6/conf/eth0/disable_ipv6'
+
+and permanent:
+
+/etc/sysctl.conf
+sudo sysctl -p /etc/sysctl.conf 
+
+for sysctl:
+sysctl -w net.core.rmem_max=2096304
+sysctl -w net.core.wmem_max=2096304
+
+
+(w is write) --> however not to file?
+sysctl -a (display values)
+
+Create VIP
+==========
+ifconfig eth0:1 inet 192.168.0.239 up  

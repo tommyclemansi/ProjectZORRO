@@ -1,0 +1,151 @@
+1/ to check 
+explain plan for select * from scott.emp where ename = 'KING';
+==> note does not execute the statement
+
+2/ select * from table(dbms_xplan.display);
+
+Typical is + note 
+
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------
+Plan hash value: 3172123684
+
+--------------------------------------------------------------------------------
+--------------
+
+| Id  | Operation                   | Name           | Rows  | Bytes | Cost (%CP
+U)| Time     |
+
+--------------------------------------------------------------------------------
+--------------
+
+
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT            |                |     1 |    38 |     2   (
+0)| 00:00:01 |
+
+|   1 |  TABLE ACCESS BY INDEX ROWID| EMP            |     1 |    38 |     2   (
+0)| 00:00:01 |
+
+|*  2 |   INDEX RANGE SCAN          | TOMSENAMEINDEX |     1 |       |     1   (
+0)| 00:00:01 |
+
+--------------------------------------------------------------------------------
+--------------
+PLAN_TABLE_OUTPUT
+--------------------------------------------------------------------------------
+
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   2 - access("ENAME"='KING')
+
+
+Cost: line 0 shows total cost acumulated
+rows: =cardinality (no of rows it expexts)
+      Note: if wrong histograms 
+
+
+==> read from top to bottom, see http://www.oracle.com/technetwork/database/bi-datawarehousing/twp-explain-the-explain-plan-052011-393674.pdf
+first is 2, then 1, then 0
+
+
+/*
+table_name - Name of the PLAN_TABLE, default value 'PLAN_TABLE'.
+statement_id - Statement id of the plan to be displayed. The default value is NULL, which displays the most recent execution plan in the PLAN_TABLE.
+format - Controls the level of detail displayed, default value 'TYPICAL'. Other values include 'BASIC', 'ALL', 'SERIAL'. There is also an undocumented 'ADVANCED' setting.
+*/
+ select * from table(dbms_xplan.display(null, null, 'ALL'));
+ select * from table(dbms_xplan.display(null, null, 'ADVANCED'));
+ 
+ 
+ Maybe better:
+ set lin 130; (linesize)
+ select /*+ GATHER_PLAN_STATISTICS */ * from scott.emp where ename = 'KING';
+ select plan_table_output from table(DBMS_XPLAN.DISPLAY_CURSOR(FORMAT=>'ALLSTATS LAST'));
+ 
+ 
+ LAN_TABLE_OUTPUT
+----------------------------------------------------------------------------------------------------------------------------------
+SQL_ID  8hg9xaxg33avr, child number 0
+-------------------------------------
+ select /*+ GATHER_PLAN_STATISTICS */ * from scott.emp where ename =
+'KING'
+
+Plan hash value: 3172123684
+
+--------------------------------------------------------------------------------------------------------
+| Id  | Operation                   | Name           | Starts | E-Rows | A-Rows |   A-Time   | Buffers |
+--------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT            |                |      1 |        |      1 |00:00:00.01 |       3 |
+
+PLAN_TABLE_OUTPUT
+----------------------------------------------------------------------------------------------------------------------------------
+|   1 |  TABLE ACCESS BY INDEX ROWID| EMP            |      1 |      1 |      1 |00:00:00.01 |       3 |
+|*  2 |   INDEX RANGE SCAN          | TOMSENAMEINDEX |      1 |      1 |      1 |00:00:00.01 |       2 |
+--------------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   2 - access("ENAME"='KING')
+ 
+ e estimated
+ A actual
+ 
+ 
+ 
+ TKPROF
+ ======
+ alter session set tracefile_identifier = 'tomstest';
+ alter session set events '10046 trace name context forever, level 12';
+ exec dbms_monitor.session_trace_enable;
+ select * from scott.emp where ename ='KING';
+  exec dbms_monitor.session_trace_disable;
+  
+  
+tkprof FMW11123_ora_15664_tomstest.trc myfile.out aggregate=no
+
+SQL ID: 4kkuf9anahfpx Plan Hash: 3172123684
+
+select *
+from
+ scott.emp where ename ='KING'
+
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        1      0.00       0.00          0          0          0           0
+Execute      1      0.00       0.00          0          0          0           0
+Fetch        2      0.00       0.00          0          3          0           1
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        4      0.00       0.00          0          3          0           1
+
+Misses in library cache during parse: 1
+Optimizer mode: ALL_ROWS
+Parsing user id: SYS
+Number of plan statistics captured: 1
+
+Rows (1st) Rows (avg) Rows (max)  Row Source Operation
+
+---------- ---------- ----------  ---------------------------------------------------
+         1          1          1  TABLE ACCESS BY INDEX ROWID EMP (cr=3 pr=0 pw=0 time=100 us cost=2 size=38 card=1)
+         1          1          1   INDEX RANGE SCAN TOMSENAMEINDEX (cr=2 pr=0 pw=0 time=73 us cost=1 size=0 card=1)(object id 83107)
+
+
+Elapsed times include waiting on following events:
+  Event waited on                             Times   Max. Wait  Total Waited
+  ----------------------------------------   Waited  ----------  ------------
+  SQL*Net message to client                       2        0.00          0.00
+  SQL*Net message from client                     2        0.00          0.00
+********************************************************************************
+
+
+DISK: no of blocks read from disk
+QUERY: Total number of buffers retrieved in consistent mode for all parse, execute, or fetch calls. Usually, buffers are retrieved in consistent mode for queries. 
+CURRENT: 	Total number of buffers retrieved in current mode. Buffers are retrieved in current mode for statements such as INSERT, UPDATE, and DELETE.
+ROWS: 	Total number of rows processed by the SQL statement. This total does not include rows processed by subqueries of the SQL statement.
+
+Query + Current = Logical Reads (total number of buffers accessed) 

@@ -1,0 +1,248 @@
+1/ to check 
+explain plan for select * from emp;
+
+2/ select * from table(dbms_xplan.display);
+
+B-Tree (balanced tree)
+======================
+// usage: retrieve very small rows from a table 
+// for exact match & range searches
+NOTE: does not store NULL values (in composite it does, 1 col must not have)
+
+//CHECK LEVEL
+select table_name from all_Tables where owner='HR';
+
+select index_name, blevel, num_rows
+from all_indexes where table_name = 'EMP'
+and owner = 'SCOTT';
+
+alter index hr.empl_demo_id index validate structure;
+select name, height, br_blks, lf_blks from index_stats;
+
+set autotrace on;
+select employee_id from hr.empl_demo
+where employee_id=700;
+==> consistent gets are logical io performed
+
+==> index Unique Scan only
+==> means data is in index itself
+
+select * 
+==> table access by index rowid
+==> rowid is used to find the block
+
+Index scan:
+Goes through branch to first entry in leaf
+then walks through the leaf blocks (from start to stop key)
+
+Types of index scan:
+ 	- Full index scan: (reading the whole index) 
+ 	  db reads index in sorter order of indexed key
+ 	  when selecting the whole indexed col and using order by that col. 
+ 	  all cols in order by must be in index, and order of cols in order by must match
+ 	  
+ 	- index fast full scan
+ 	  like full index scan, no access of table, but index blocks are 
+ 	  not read in order.  multiblock read happens. 
+ 	  index must contain all cols for query
+ 	  group by: cols in group by are in index
+ 	  
+ 	 - index range scan
+ 	   ordered scan of index
+ 	   indexed col <value
+ 	   between, like .. 
+ 	   
+ 	   just goto first value in leaf and then traverse the leafs
+ 	   
+ 	 - index unique scan
+ 	   when unique, with = operator, for retrieving 1 value and no 
+ 	   duplicates are possible
+ 	   
+ 	 - index skip scan
+ 	   when using composite index.  
+ 	   first col has not a lot of diff values
+ 	   second col does have
+ 	   first cool is not used in query predicate 
+ 	   
+
+
+/*B-Tree types: 
+reverse key
+desc 
+b-tree cluster
+key compressed
+iot*/
+
+//compressed index 
+create table t_obj as select * from dba_objects;
+
+create index t_obj_indx_nocompress on t_obj(owner, object_type, object_name);
+
+begin dbms_stats.gather_table_stats(user, 'emp', CASCADE=>true); end;
+BEGIN SYS.DBMS_STATS.GATHER_TABLE_STATS(
+OwnName => 'SYS',
+TabName => 'T_OBJ',
+Estimate_percent => 0, //% of rows to estimate
+Method_Opt => 'for all indexed columns' 
+Cascade => True, // also do this for indexes 
+No_Invalidate => FALSE); //set cursor to invalid after this
+END;
+/
+
+METHOD_OPT to FOR ALL COLUMNS SIZE AUTO
+==> this is recommendded, oracle will take histograms
+
+)
+
+sample descending index:
+------------------------
+usage=
+create index t_obj_indx_nocompress on t_obj(owner desc , object_type asc, object_name desc);
+
+:> in case you do an order by owner desc, object type asc, object_name desc
+==> normally without the desc index you would see something like 
+index range scan + sort order by
+
+==> if you have the desc index you don't need to do this extra sort step
+
+sample key compression
+-----------------------
+if there are a lot of duplicate indexes
+prefix  		-- 				suffix
+leading cols					trailing cols
+
+
+with no compression:
+create index t_obj_indx_nocompress on t_obj(owner  , object_type , object_name );
+alter index hr.empl_demo_id index validate structure;
+select name, height, br_blks, lf_blks,opt_cmpr_count,opt_cmpr_pctsave from index_stats;
+
+create index t_obj_indx_nocompress on t_obj(owner  , object_type , object_name ) compress 1;
+==> leaf blocks is reduced
+==> pctsave: what will be the optimum compression saved, and optimum value
+
+basically in leaf blocks, there will be a prefix owner, object type
+and in the leaf blocks itself per row only the object name is stored
+
+==> more data per block
+    so less space, but more chance for block contention
+        
+reverse key
+-----------
+designed to reduce block contention in right most leaf block (sequences)
+create index t_obj_indx_nocompress on t_obj(owner  , object_type , object_name );
+==> range predicates are ignored (disadvantage)
+(like between < >= ..)
+
+b-tree clustered index
+-----------------------
+create cluster emp_dept (dept_id number(4)) size 512;
+create index ffqf on cluster emp_dept;
+create table emp_c (emp_id, dept_id ) cluster emp_dept(dept_id);
+create table dept_c (dept_id, mgr) cluster emp_dept(dept_id);
+
+in clutered table emps with dept 10 & dept 10 details are stored in same block
+==> less io
+
+store a group of tables , sharing column in same db block 
+when tables with common columns.
+
+cluster index is b-tree on the cluster key
+index must be created before any rows can be inserted into clustered tables
+
+
+IOT
+---
+table stored in Btree structure
+leaf node also stores non key values
+==> no data segment, so no rowid(there is a logical rowid)
+
+
+
+USAGE of btree
+---------------
+if data scattered it might be that you see a lot of table access by rowid
+then blocks are reread and the optimizer might choose fts (full table scan)
+typically in small tables with big block size
+
+if big tables, blocks will not be reread and then it is ok to use the btree
+
+IMPORTANT INFO
+* index clustering factor: number increases when reading for a diff block.(not same block) 
+if reading too much .
+==> if this number is too high, to many rereads , 
+==> select clustering°factor from all_indexes view
+(if close to number of blocks it is good, else bad)
+
+* OPTIMIZER_MODE
+all_rows: (default) -> return all rows in shortest possible time (prefers fts over index)
+first_rows: -> return first row as soon as possible (prefers index over fts)
+            (useful in webapp -> showing first 10 rows)
+
+*OPTIMIZER_INDEX_COST_ADJ; 
+ change the cost of table access through index scans
+ 1 to 10000, default is 100
+ >100: insex scans more expensive & favor fts
+ <100 index scans less expensive
+
+Bitmap&Bitmap join
+===================
+create index t_obj_indx_nocompress on t_obj(owner  , object_type , object_name );
+if owner, object_type have many duplicate values
+and object_name does not have 
+
+Note that updating a row for an indexed col, basically locks a big part of the index
+
+function based indexes
+-----------------------
+==> function needs to be deterministic
+=> same input , same output
+
+Use SUBSTR when using String based functions !! create index myindex on emp (substr(test(ename, 1,6)));
+==> use also substr in query
+==> wa : use a view or virtual column 
+alter table emp add ename_test as (substr(myfunction(ename), 1, 6));
+create index testi on emp(ename_test)
+select * from emp where ename_test=myfunction('test');
+ 
+Note that this is also a solution for Bitmap indexes
+-----------------------------------------------------
+==> return null when you do not want to index
+for example 
+create index indxname on big_table(case temporary when 'N' then 'N' end);
+==> only include rows in index when temporary is 'N', (so not includes 'Y'à;
+
+
+Add info
+========
+you can make an index invisible so that it is not found by optimizer,
+then you can use per session: alter session set optimizer_use_invisible_indexes=true
+ 
+ to force
+ select /+ index(t t_pk) */ * from t where x=5;
+ 
+Partitioned
+============
+
+
+ADD
+
+CHECK BROKEN INDEX
+===================
+select owner, index_name, table_name, tablespace_name, status
+from dba_indexes
+where status in ('INVALID', 'UNUSABLE')
+order by 1, 2
+
+12c: unusable
+<12c: invalid
+
+alter table x move; 
+==> index points to invalid objects, gets unusable
+
+alter index hr.test rebuild tablespace example,
+
+
+also maintain:
+ANALYZE INDEX INDEX1 COMPUTE STATISTICS 
+ANALYZE INDEX INDEX1 VALIDATE STRUCTURE 

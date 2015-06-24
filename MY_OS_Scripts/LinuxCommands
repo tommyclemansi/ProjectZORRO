@@ -22,6 +22,19 @@ dmesg
 find . -type f -name '*.jar' -print0 |  xargs -0 -I '{}' sh -c 'jar tf {} | grep CSSUtils.class &&  echo {}'
 find . -type f -name '*.jar' -print0 |  xargs -0 -I '{}' sh -c 'jar tf {} | grep NodeImpl.class &&  echo {}'
 
+#find latest changed file
+find . -type f -exec stat --format '%Y :%y %n' "{}" \; | sort -nr | cut -d: -f2- | head -n 30
+
+# do some formatting/ sed based:
+
+openssl dgst -md5  UserStore.xml | cut -d' ' -f2 | sed -e 's/[0-9,a-f]\{2\}/&:/g'
+!! this is it
+now at the end there is 
+ef:9a:1a:bf:d3:3b:98:8b:dc:74:8b:9d:b9:0f:f5:49:
+
+
+hmm all that work, seems digest may also be outputted with the columns
+openssl dgst -md5  -c UserStore.xml | cut -d' ' -f2 
 
 # check os limits
 sysctl -a | grep ip_local_port_range
@@ -43,3 +56,92 @@ ls cron*
 # just grep 
 find . -name "*.xml" | xargs grep "prefix.cert"
 find . -name "*.json" | xargs grep "system.prefix.cert"
+
+#sample awk for monitoring
+ps -ef | grep vshell | awk '
+#tomsawk script, begins here 
+#applies to only first invocation
+BEGIN {#FS= " \t"
+count = 0
+print "printing environment variables"
+for (myenv in ENVIRON)
+	print myenv ":" ENVIRON[myenv]
+}
+#main awk block, applies to all
+{print "PID: " $2 " Type: " $8
+ if ($8 !~ "grep")
+     count ++
+	 #store the PID in the array to be used later
+	 myarray[count]=$2
+}
+END{print "no of processes: "  NR  " real number: " count
+#now begin real script
+print "begin script"
+do 
+{		echo "output " $_date
+		for (i=1;i<=count;i++ )
+			{ print "call shell script here"	
+			  #pstack myarray[i]
+			}
+print "before sleep"
+system("sleep 3")
+print "after sleep"
+}
+while (true)
+print "end script"
+}'
+
+#set prompt to current path:
+export PS1='$(whoami)@$(hostname):$(pwd)>'
+
+# count number of errors:
+grep -cir "ERROR  " *.trc*
+nodemanageronvipoegmgt01_8091.trc:0
+nodemanageronvipoegmgt01_8091.trc.0:539
+nodemanageronvipoegmgt01_8091.trc.1:312
+
+
+# new, print the first and last line of a file, in order to know range file includes:
+commands:
+awk 'NR == 1 { print }END{ print }' filename
+OR 
+sed -e 7b -e '$!d' filename
+
+# display first and last line:
+xargs: -0 (new line for every, iso delimited by space, use it only when prev command uses NUL to delemit output)
+       so only use this with print0
+xargs: -I each line is buffered, and replaces each {}
+xargs: -t output each line
+
+# I used awk as seems to be easier:
+# printed 7nt line due to the fact that first there is some header information
+find . -type f -name '*.trc' -print0 | xargs -0 -I -t {} awk '{if(NR == 6) { print "filename: " FILENAME "\n" $2}} END { print $2}' {}
+
+#without debug info:
+find . -type f -name '*.trc*' -print0 | xargs -0 -I {} awk '{if(NR == 6) { print "filename: " FILENAME "\n" $2}} END { print $2}' {}
+
+#only for current dir
+ls *.trc* | xargs -I {} awk '{if(NR == 6) { print "filename: " FILENAME "\n" $2}} END { print $2}' {} 
+sed -e 7b -e '$!d' *.trc
+
+#final command used
+ 
+find . -type f -name 'nodeman*.trc*' -print0 | xargs -0 -I {} awk '{if(NR == 6) { print FILENAME;for (i = 1; i <= length(FILENAME); i++) printf "=";print "\n" $2}} END { print $2 "\n"}' {}
+find . -type f -name '*gw*.trc*' -print0 | xargs -0 -I {} awk '{if(NR == 6) { print FILENAME;for (i = 1; i <= length(FILENAME); i++) printf "=";print "\n" $2}} END { print $2 "\n"}' {}
+
+#now include the number of errors
+find . -type f -name 'nodeman*.trc*' -print0 | xargs -0 -I {} awk '{if($1 ~ /ERROR/){counter++};if(NR == 6) { print FILENAME;for (i = 1; i <= length(FILENAME); i++) printf "=";print "\n" $2}} END { print $2 "\nERRORS: " counter}' {}
+
+find . -type f -name 'nodeman*.trc*' -print0 | xargs -0 -I {} awk 'BEGIN{counter=0}{if($1 ~ /ERROR/){counter++};if(NR == 6) { print FILENAME;for (i = 1; i <= length(FILENAME); i++) printf "=";print "\n" $2}} END { print $2 "\nERRORS: " counter}' {}
+
+find . -type f -name 'nodeman*.trc*' -print0 | xargs -0 -I {} awk 'BEGIN{counter=0}{if($0 ~ /Connection failed/){counter++};if(NR == 6) { print FILENAME;for (i = 1; i <= length(FILENAME); i++) printf "=";print "\n" $2}} END { print $2 "\nERRORS: " counter}' {}
+
+# only show starting position:
+find . -type f -name 'nodeman*.trc*' -print0 | xargs -0 -I {} awk 'BEGIN{counter=0}{if($0 ~ /Connection failed/){counter++};if(NR == 6) { printf FILENAME " :\n" $2 " - " }} END { printf $2 " -  ERRORS: " counter "\n"}' {}
+
+find . -type f -name '*gw*.trc*' -print0 | xargs -0 -I {} awk '{if(NR == 6) { printf FILENAME ": " $2}} END { printf " - "$2 "\n"}' {}
+find . -type f -name '*gw*.trc*' -print0 | xargs -0 -I {} awk 'BEGIN{counter=0}{if($0 ~ /listen on/){counter++};if(NR == 6) { printf FILENAME " :\n" $2 " - " }} END { printf $2 " -  HITS: " counter "\n"}' {}
+
+
+find . -type f -name 'nodeman*.trc*' -print0 | xargs -0 -I {} awk 'BEGIN{counter=0}{if($0 ~ /Connection failed/){counter++};if(NR == 6) { printf FILENAME " :\n" $2 " - " }} END { printf $2 " -  ERRORS: " counter "\n"}' {}
+
