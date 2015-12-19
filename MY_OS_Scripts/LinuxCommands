@@ -145,3 +145,4 @@ find . -type f -name '*gw*.trc*' -print0 | xargs -0 -I {} awk 'BEGIN{counter=0}{
 
 find . -type f -name 'nodeman*.trc*' -print0 | xargs -0 -I {} awk 'BEGIN{counter=0}{if($0 ~ /Connection failed/){counter++};if(NR == 6) { printf FILENAME " :\n" $2 " - " }} END { printf $2 " -  ERRORS: " counter "\n"}' {}
 
+test
