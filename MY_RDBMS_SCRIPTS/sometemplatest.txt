@@ -117,6 +117,8 @@ select s.sid, p.spid, s.serial#, w.event,s.username, s.program, w.state, w.p1,w.
 limit machine , but also show last sql:
 select s.sid, p.spid, s.machine,s.sql_id,l.sql_text,s.serial#, w.event,s.username, s.program, w.state, w.p1,w.p2,w.p3,w.seconds_in_wait/60 as min_in_wait from v$session_wait w,v$session s,v$process p , v$sqltext l where w.sid=s.sid and s.paddr= p.addr and s.type='USER' and upper(s.program) like '%JDBC%' and s.sql_address = l.address and l.hash_value = s.sql_hash_value and s.machine ='MACHINENAME' order by min_in_wait ;
 
+also ecid:
+select s.sid, p.spid, s.machine,s.sql_id,l.sql_text , s.sql_exec_start, s.wait_time, s.ecid, S.port,  s.serial#, w.event,s.username, s.program, w.state, w.p1,w.p2,w.p3,w.seconds_in_wait/60 as min_in_wait from v$session_wait w,v$session s,v$process p , v$sqltext l where w.sid=s.sid and s.paddr= p.addr and s.type='USER' and upper(s.program) like '%JDBC%' and s.sql_address = l.address and l.hash_value = s.sql_hash_value order by min_in_wait ;
 
 If you find a session that matches the wait time of your client thread, you can try to get more information on that serverside process..
 
