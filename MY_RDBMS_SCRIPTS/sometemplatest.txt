@@ -114,6 +114,10 @@ select s.sid, p.spid, w.event,s.username, s.program, w.state, w.p1,w.p2,w.p3,w.s
 include also serial:
 select s.sid, p.spid, s.serial#, w.event,s.username, s.program, w.state, w.p1,w.p2,w.p3,w.seconds_in_wait/60 as min_in_wait from v$session_wait w,v$session s,v$process p where w.sid=s.sid and s.paddr= p.addr and s.type='USER' and upper(s.program) like '%JDBC%' order by min_in_wait desc;
 
+limit machine , but also show last sql:
+select s.sid, p.spid, s.machine,s.sql_id,l.sql_text,s.serial#, w.event,s.username, s.program, w.state, w.p1,w.p2,w.p3,w.seconds_in_wait/60 as min_in_wait from v$session_wait w,v$session s,v$process p , v$sqltext l where w.sid=s.sid and s.paddr= p.addr and s.type='USER' and upper(s.program) like '%JDBC%' and s.sql_address = l.address and l.hash_value = s.sql_hash_value and s.machine ='MACHINENAME' order by min_in_wait ;
+
+
 If you find a session that matches the wait time of your client thread, you can try to get more information on that serverside process..
 
 ==> if you find the session id then update the output of one of the obove queries to the SR.. (so we know the wait event)
