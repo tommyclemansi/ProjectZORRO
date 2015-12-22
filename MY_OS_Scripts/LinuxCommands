@@ -26,6 +26,9 @@ find . -type f -name '*.jar' -print0 |  xargs -0 -I '{}' sh -c 'jar tf {} | grep
 
 find . -type f -name '*.jar' | awk '
 #tomsawk script, begins here 
+
+find . -type f -name '*.jar' | awk '
+#tomsawk script, begins here 
 BEGIN {#FS= " \t"
 count = 0
 }
@@ -38,7 +41,7 @@ system(sprintf("jar tf %s", myjar ))
 }
 END{print "no of jars : " count
 print "end script"
-}' > outputjar.log 2>&1
+}' 2>&1 | grep -B 1 "ZipException"
 
 #find latest changed file
 find . -type f -exec stat --format '%Y :%y %n' "{}" \; | sort -nr | cut -d: -f2- | head -n 30
