@@ -24,17 +24,28 @@ disk:
 df -i (show inodes avail)
 df -kh
 iotop -o -q -n10 -d 5
+iostat -y -t 5 10  (check %util)
+(+disk) 
+
+lvdisplay (display logical vols)
+pvdisplay (display physical device for lv)
+ps -elf | grep " D " (processes in uninterruptible sleep --> waiting for io)
+/proc/pid/io (show how much data a process has written)
 
 cpu 
-iostat -y -t 5 10 
+iostat -y -t 5 10  (check %util)
 (+disk) 
 iostat -p sda -tx
+top (ni: when nice is set, else su , wa high: wait disk, st: stolen virtualized box)
+ps --forest -eo user,pid, %spu , cmd ... 
 
 mem:
-free 
+free (see second line for real values --> buffers & caches taken into account) (first used, second free)
 vmstat
 vmstat -s
+grep -i "out of memory" /var/log/messages (oomkill)
 
+ps -eo rss, vsize, user, pid, cmd | sort -nk 1 | tail -n 10 (numeric sort on first column)
 
 network
 ifconfig
@@ -43,3 +54,7 @@ ip addr show dev eth0
 ip route show
 ip -s link show dev eth0
 netstat -nlp --tcp 5
+
+dns:
+nslookup (note bypass of nsswitch.conf)
+dig 
