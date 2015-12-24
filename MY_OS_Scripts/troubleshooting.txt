@@ -1,0 +1,5 @@
+/var/log/
+messages
+secure (ssh logins)
+cron (cron jobs)
+sa (systat)
