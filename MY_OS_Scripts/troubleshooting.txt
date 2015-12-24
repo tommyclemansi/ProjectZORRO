@@ -12,6 +12,14 @@ rpm -V packagename (check if package has altered)
 
 w : who is logged in
 
+overall: sar (requires rpm -q sysstat (see /var/log/sa)
+sar
+sar -f /var/log/sa/sa119 (from past)
+sar -b: io
+sar -n ALL (network)
+sar -R; mem
+sar -A (all)
+
 disk:
 df -i (show inodes avail)
 df -kh
@@ -24,6 +32,8 @@ iostat -p sda -tx
 
 mem:
 free 
+vmstat
+vmstat -s
 
 
 network
