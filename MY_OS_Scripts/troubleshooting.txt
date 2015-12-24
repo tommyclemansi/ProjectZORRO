@@ -1,5 +1,20 @@
+frequently commands / checks
+
 /var/log/
 messages
 secure (ssh logins)
 cron (cron jobs)
 sa (systat)
+
+check config files
+rpm -q -c packagename
+rpm -V packagename (check if package has altered)
+
+w : who is logged in
+
+disk:
+df -i (show inodes avail)
+df -kh
+
+mem:
+free 
