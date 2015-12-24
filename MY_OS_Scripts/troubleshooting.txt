@@ -15,6 +15,21 @@ w : who is logged in
 disk:
 df -i (show inodes avail)
 df -kh
+iotop -o -q -n10 -d 5
+
+cpu 
+iostat -y -t 5 10 
+(+disk) 
+iostat -p sda -tx
 
 mem:
 free 
+
+
+network
+ifconfig
+netstat -anp
+ip addr show dev eth0 
+ip route show
+ip -s link show dev eth0
+netstat -nlp --tcp 5
