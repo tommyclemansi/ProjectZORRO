@@ -58,3 +58,8 @@ netstat -nlp --tcp 5
 dns:
 nslookup (note bypass of nsswitch.conf)
 dig 
+
+info:
+-----
+man 
+/usr/share/doc
