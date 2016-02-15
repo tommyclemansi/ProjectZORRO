@@ -246,4 +246,28 @@ done
 
 
 then monitor:
-grep 5419 nldtrace_s51lvds.cmcpp.be5419.txt
+check growth of process:
+grep 5419 nldtrace_s51lvds.cmcpp.be5419.txt | awk '
+#tomsawk script, begins here 
+#applies to only first invocation
+BEGIN {#FS= " \t"
+oldRSS=0
+oldVS=0
+counter=0
+}
+#main awk block, applies to all
+{
+# per 30 minutes print the difference in memory
+if (counter>=30)
+{
+#print "RSS: " $9 "KB VSIZE: " $11 "KB"
+print "DIFF: RSS: "KB $9-oldRSS " VSIZE: " $11-oldVS "KB"
+oldRSS=$9
+oldVS=$11
+counter=0
+}
+counter++
+}
+END{
+print "script completed"
+}'
