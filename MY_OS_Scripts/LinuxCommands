@@ -166,4 +166,84 @@ find . -type f -name '*gw*.trc*' -print0 | xargs -0 -I {} awk 'BEGIN{counter=0}{
 
 find . -type f -name 'nodeman*.trc*' -print0 | xargs -0 -I {} awk 'BEGIN{counter=0}{if($0 ~ /Connection failed/){counter++};if(NR == 6) { printf FILENAME " :\n" $2 " - " }} END { printf $2 " -  ERRORS: " counter "\n"}' {}
 
-test
+check mem:
+#### start script
+#!/bin/bash
+# 04/02-  Tom Cleymans
+
+# issue is to monitor the PSCcObjMgr_nld process
+# monitor a process memory usage
+
+# vars
+TRACEDIR=/opt/siebinstall/tracing
+MYHOST=$(hostname)
+
+echo "Pres CTRL+C to stop..."
+nldpid2=0
+counter=0
+nldpid=$1
+# loop forever
+for (( ; ; ))
+do
+
+#nldpid=$(/home/siebel/scripts/listprocs.sh | grep PSCcObjMgr_nld | cut -d'#' -f2 | sed 's/[^0-9]*//g')
+
+# only if nldpid is nonzero we need to invoke code
+if [ -n nldpid ]
+then
+TRACELOG=${TRACEDIR}/nldtrace_${MYHOST}${nldpid}.txt
+TRACELOG2=${TRACEDIR}/nldtraceDET_${MYHOST}${nldpid}.txt
+echo $TRACELOG
+
+# take baseline if new process
+if [ $nldpid != $nldpid2 ]
+then
+BASELINE=${TRACEDIR}/baseline_${MYHOST}${nldpid}.txt
+echo "BASELINE: " > ${BASELINE}
+date >> ${BASELINE}
+echo "process status: "  >> ${BASELINE}
+cat /proc/${nldpid}/status >> ${BASELINE}
+echo "process map: " >> ${BASELINE}
+cat /proc/${nldpid}/maps >> ${BASELINE}
+fi
+
+# block to execute every 60 secs
+date >> ${TRACELOG}
+ps -p $nldpid -o pid,cmd,etime,pcpu,stat,start_time,rss,size,sz,vsize,pmem >> ${TRACELOG}
+echo "" >> ${TRACELOG}
+
+fi
+
+if [ $counter == 15 ]
+then
+# every X minutes do something more
+# sysstat is enabled on machines
+# this is just a guess that this is problematic
+date >> ${TRACELOG2}
+echo "libsscaadtbc.so LOADED: " >> ${TRACELOG2}
+cat /proc/${nldpid}/maps | grep libsscaadtbc  >> ${TRACELOG2}
+
+echo "THREADS: " >> ${TRACELOG2}
+ps -p ${nldpid} -L -o pid,cmd,etime,pcpu,stat,start_time >> ${TRACELOG2}
+
+echo "MACHINE MEMORY: " >> ${TRACELOG2}
+free >> ${TRACELOG2}
+
+echo "PROCESS STATUS: "  >> ${TRACELOG2}
+cat /proc/${nldpid}/status >> ${TRACELOG2}
+
+counter=0
+fi
+
+# wait 60 secs
+sleep 1m
+((counter++))
+nldpid2==$(/home/siebel/scripts/listprocs.sh | grep PSCcObjMgr_nld | cut -d'#' -f2 | sed 's/[^0-9]*//g')
+# end outer loop
+done
+
+#### end script
+
+
+then monitor:
+grep 5419 nldtrace_s51lvds.cmcpp.be5419.txt
