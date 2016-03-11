@@ -45,7 +45,7 @@ vmstat
 vmstat -s
 grep -i "out of memory" /var/log/messages (oomkill)
 
-ps -eo rss, vsize, user, pid, cmd | sort -nk 1 | tail -n 10 (numeric sort on first column)
+ps -eo rss,vsize,user,pid,cmd | sort -nk 1 | tail -n 10 (numeric sort on first column)
 
 network
 ifconfig
