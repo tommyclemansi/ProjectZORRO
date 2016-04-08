@@ -11,6 +11,9 @@
 # use visudo to edit 
 # /etc/sudoers 
 #
+setgid:
+#When setgid permission is applied to a directory, files that were created in this directory belong to the group to which the directory #belongs, not the group to which the creating process belongs. Any user who has write and execute permissions in the directory can create 
+#a http://permissions-calculator.org/info/ile there. However, the file belongs to the group that owns the directory, not to the user's #group ownership.
 
 # below should oracle, no matter where logged in
 # and without pwd, run ifconfig & arping (as root)
