@@ -271,3 +271,6 @@ counter++
 END{
 print "script completed"
 }'
+
+#tcpdump
+tcpdump -i eth0 -s 1000 'port 7777' -w /tmp/<hostname>.pcap
