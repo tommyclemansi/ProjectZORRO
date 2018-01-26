@@ -1,11 +1,11 @@
 Notes:
 ------
 .pem : base64 format (begin/end cert syntax)
-.der/.cer/.crt: binary format (der format)
+.der/.cer/.crt: binary format (der format) (1 single cert)
 
 PKCS
 ----
-PKCS7: (begin/end pkcs , contains only certificates)
+PKCS7: (begin/end pkcs , contains only certificates) (can contain all certs in the path)
 PFX/PKCS12: contains server cert, private key, and intermediate in 1 file
 
 viewing certificates:
@@ -118,7 +118,7 @@ keytool -list -v -keystore tcleyman2.JKS -storepass Oracle1234
 
 ./keytool -certreq -alias client -sigalg "SHA1withRSA" -file client/client.csr -storetype jks -keystore client/client.jks -storepass mystorepass
 
-keytool -import -trustcacerts -alias rootcacert –keystore server/server.jks -file ct_root.cer -storepass mystorepass
+keytool -import -trustcacerts -alias rootcacert â€“keystore server/server.jks -file ct_root.cer -storepass mystorepass
 
 keytool -import -trustcacerts -alias intermediatecacert1 -keystore server/server.jks -file VodafoneCorporateDomain2009.cer -storepass mystorepass
 
